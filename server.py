@@ -3,6 +3,8 @@
 import sys
 import asyncio
 
+pips = {}
+
 async def handle_client(reader, writer):
 
 	while 1:
@@ -11,8 +13,22 @@ async def handle_client(reader, writer):
 			#writer.close()
 			break
 		else:
-			writer.write(b'server response')
-			print('received message:', data.decode())
+			decoded = data.decode()
+			split = decoded.split()
+			print(split)
+
+			if(len(split) != 5):
+				err = "? " + decoded
+				writer.write(err.encode())
+				return
+			if(split[0] == 'IAMAT'):
+				latitude = split[2]
+				longitude = split[3]
+				time = split[4]
+			#elif(data.decode[0] == 'WHATSAT'):
+			
+			pips[split[1]] = (latitude, longitude, time)
+			print(split[1], ":", pips[split[1]])
 			await writer.drain()
 
 
@@ -38,6 +54,7 @@ async def main():
 
 	addr = server.sockets[0].getsockname()
 	print(f'Serving on {addr}')
+
 	
 	async with server:
 		await server.serve_forever()

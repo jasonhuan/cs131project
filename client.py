@@ -20,8 +20,8 @@ async def main():
 		reader, writer = await asyncio.open_connection(port=11539)
 
 	message = ''
-	for x in range(1, len(sys.argv)):
-		if(x != 1):
+	for x in range(2, len(sys.argv)):
+		if(x != 2):
 			message += ' '
 		message += sys.argv[x]
 
