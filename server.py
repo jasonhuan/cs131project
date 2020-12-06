@@ -39,8 +39,12 @@ async def handle_client(reader, writer):
 					err = "? " + decoded
 					writer.write(err.encode())
 					return
-				lookup = pips[split[1]]
-				writer.write(str(lookup).encode())
+				try:
+					lookup = pips[split[1]]
+					writer.write(str(lookup).encode())
+				except KeyError:
+					writer.write(b'no data')
+				
 				#<API call to Google Places>
 
 			
@@ -61,7 +65,11 @@ async def main():
 		except IOError as e:
 			print("unable to connect to Jaquez")
 		
-		#connect to smith
+		try:
+			smithReader, smithWriter = await asyncio.open_connection(port=11537)
+			print("connected to Smith")
+		except IOError as e:
+			print("unable to connect to Smith")
 
 	elif(sys.argv[1] == 'Jaquez'):
 		server = await asyncio.start_server(handle_client, port=11536)
@@ -73,27 +81,72 @@ async def main():
 		except IOError as e:
 			print("unable to connect to Hill")
 
-		#connect to singleton
+		try:
+			singletonReader, singletonWriter = await asyncio.open_connection(port=11538)
+			print("connected to Singleton")
+		except IOError as e:
+			print("unable to connect to Singleton")
 
 	elif(sys.argv[1] == 'Smith'):
 		server = await asyncio.start_server(handle_client, port=11537)
-		#connect to hill
-		#connect to singleton
-		#connect to campbell
 		print("server Smith started")
+
+		try:
+			hillReader, hillWriter = await asyncio.open_connection(port=11535)
+			print("connected to Hill")
+		except IOError as e:
+			print("unable to connect to Hill")
+
+		try:
+			singletonReader, singletonWriter = await asyncio.open_connection(port=11538)
+			print("connected to Singleton")
+		except IOError as e:
+			print("unable to connect to Singleton")
+
+		try:
+			campbellReader, campbellWriter = await asyncio.open_connection(port=11539)
+			print("connected to Campbell")
+		except IOError as e:
+			print("unable to connect to Campbell")
 
 	elif(sys.argv[1] == 'Singleton'):
 		server = await asyncio.start_server(handle_client, port=11538)
-		#connect to jaquez
-		#connect to smith
-		#connect to campbell
 		print("server Singleton started")
+		
+		try:
+			jaquezReader, jaquezWriter = await asyncio.open_connection(port=11536)
+			print("connected to Jaquez")
+		except IOError as e:
+			print("unable to connect to Jaquez")
+		
+		try:
+			smithReader, smithWriter = await asyncio.open_connection(port=11537)
+			print("connected to Smith")
+		except IOError as e:
+			print("unable to connect to Smith")
+		
+		try:
+			campbellReader, campbellWriter = await asyncio.open_connection(port=11539)
+			print("connected to Campbell")
+		except IOError as e:
+			print("unable to connect to Campbell")
 
 	elif(sys.argv[1] == 'Campbell'):
 		server = await asyncio.start_server(handle_client, port=11539)
-		#connect to smith
-		#connect to singleton
 		print("server Campbell started")
+
+		try:
+			smithReader, smithWriter = await asyncio.open_connection(port=11537)
+			print("connected to Smith")
+		except IOError as e:
+			print("unable to connect to Smith")
+
+		try:
+			singletonReader, singletonWriter = await asyncio.open_connection(port=11538)
+			print("connected to Singleton")
+		except IOError as e:
+			print("unable to connect to Singleton")
+		
 
 	addr = server.sockets[0].getsockname()
 	print(f'Serving on {addr}')
