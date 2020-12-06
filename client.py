@@ -1,0 +1,36 @@
+#!/usr/bin/python
+
+import sys
+import asyncio
+
+
+async def main():
+	print('Number of arguments:', len(sys.argv), 'arguments.')
+	print('Argument List:', str(sys.argv))
+
+	if(sys.argv[1] == 'Hill'):
+		reader, writer = await asyncio.open_connection(port=11535)
+	elif(sys.argv[1] == 'Jaquez'):
+		reader, writer = await asyncio.open_connection(port=11536)
+	elif(sys.argv[1] == 'Smith'):
+		reader, writer = await asyncio.open_connection(port=11537)
+	elif(sys.argv[1] == 'Singleton'):
+		reader, writer = await asyncio.open_connection(port=11538)
+	elif(sys.argv[1] == 'Campbell'):
+		reader, writer = await asyncio.open_connection(port=11539)
+
+	message = sys.argv[2]
+
+	print(f'Send: {message!r}')
+	writer.write(message.encode())
+
+	data = await reader.read(100)
+	print(f'Received: {data.decode()!r}')
+
+	print('Close the connection')
+	writer.close()
+
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
