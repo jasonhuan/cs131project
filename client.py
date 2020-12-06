@@ -19,7 +19,11 @@ async def main():
 	elif(sys.argv[1] == 'Campbell'):
 		reader, writer = await asyncio.open_connection(port=11539)
 
-	message = sys.argv[2]
+	message = ''
+	for x in range(1, len(sys.argv)):
+		if(x != 1):
+			message += ' '
+		message += sys.argv[x]
 
 	print(f'Send: {message!r}')
 	writer.write(message.encode())

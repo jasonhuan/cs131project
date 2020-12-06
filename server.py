@@ -12,6 +12,7 @@ async def handle_client(reader, writer):
 			break
 		else:
 			writer.write(b'server response')
+			print('received message:', data.decode())
 			await writer.drain()
 
 
@@ -25,6 +26,15 @@ async def main():
 	elif(sys.argv[1] == 'Jaquez'):
 		server = await asyncio.start_server(handle_client, port=11536)
 		print("server Jaquez started")
+	elif(sys.argv[1] == 'Smith'):
+		server = await asyncio.start_server(handle_client, port=11537)
+		print("server Smith started")
+	elif(sys.argv[1] == 'Singleton'):
+		server = await asyncio.start_server(handle_client, port=11538)
+		print("server Singleton started")
+	elif(sys.argv[1] == 'Campbell'):
+		server = await asyncio.start_server(handle_client, port=11539)
+		print("server Campbell started")
 
 	addr = server.sockets[0].getsockname()
 	print(f'Serving on {addr}')
