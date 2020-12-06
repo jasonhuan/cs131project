@@ -34,7 +34,7 @@ async def main():
 	print('Close the connection')
 	writer.close()
 
-
+	return
 
 if __name__ == "__main__":
     asyncio.run(main())

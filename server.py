@@ -17,18 +17,26 @@ async def handle_client(reader, writer):
 			split = decoded.split()
 			print(split)
 
-			if(len(split) != 5):
+			if(len(split) != 4):
 				err = "? " + decoded
 				writer.write(err.encode())
 				return
+				
 			if(split[0] == 'IAMAT'):
-				latitude = split[2]
-				longitude = split[3]
-				time = split[4]
-			#elif(data.decode[0] == 'WHATSAT'):
+				coordinates = split[2]
+				time = split[3]
+				pips[split[1]] = (coordinates, time)
+				print(split[1], ":", pips[split[1]])
+			elif(split[0] == 'WHATSAT'):
+				client = split[1]
+				radius = split[2]
+				items = split[3]
+				if(int(radius) > 50 or int(items) > 20):
+					err = "? " + decoded
+					writer.write(err.encode())
+					return
 			
-			pips[split[1]] = (latitude, longitude, time)
-			print(split[1], ":", pips[split[1]])
+			writer.write(b'message received')
 			await writer.drain()
 
 
