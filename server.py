@@ -27,7 +27,8 @@ async def handle_client(reader, writer):
 				time = split[3]
 				pips[split[1]] = (coordinates, time)
 
-				#Implement flooding algorithm to other servers
+				writer.write(b'message received')
+				#<Implement flooding algorithm to other servers>
 				print(split[1], ":", pips[split[1]])
 
 			elif(split[0] == 'WHATSAT'):
@@ -38,11 +39,11 @@ async def handle_client(reader, writer):
 					err = "? " + decoded
 					writer.write(err.encode())
 					return
-			
-				#API call to Google Places
-				print(client, radius, items)
+				lookup = pips[split[1]]
+				writer.write(str(lookup).encode())
+				#<API call to Google Places>
 
-			writer.write(b'message received')
+			
 			await writer.drain()
 
 
@@ -52,15 +53,27 @@ async def main():
 
 	if(sys.argv[1] == 'Hill'):
 		server = await asyncio.start_server(handle_client, port=11535)
-		#connect to jaquez
-		#connect to smith
 		print("server Hill started")
+
+		try:
+			jaquezReader, jaquezWriter = await asyncio.open_connection(port=11536)
+			print("connected to Jaquez")
+		except IOError as e:
+			print("unable to connect to Jaquez")
+		
+		#connect to smith
 
 	elif(sys.argv[1] == 'Jaquez'):
 		server = await asyncio.start_server(handle_client, port=11536)
-		#connect to hill
-		#connect to singleton
 		print("server Jaquez started")
+
+		try:
+			hillReader, hillWriter = await asyncio.open_connection(port=11535)
+			print("connected to Hill")
+		except IOError as e:
+			print("unable to connect to Hill")
+
+		#connect to singleton
 
 	elif(sys.argv[1] == 'Smith'):
 		server = await asyncio.start_server(handle_client, port=11537)
