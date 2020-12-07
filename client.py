@@ -18,6 +18,9 @@ async def main():
 		reader, writer = await asyncio.open_connection(port=11538)
 	elif(sys.argv[1] == 'Campbell'):
 		reader, writer = await asyncio.open_connection(port=11539)
+	else:
+		print("Unrecognized server")
+		return
 
 	message = ''
 	for x in range(2, len(sys.argv)):

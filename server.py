@@ -17,7 +17,7 @@ async def handle_client(reader, writer):
 			decoded = data.decode()
 			split = decoded.split()
 			#print("decoded:", decoded)
-			print("split:", split)
+			print("received:", split)
 
 
 			if(split[0] == "AT"):
@@ -51,12 +51,24 @@ async def handle_client(reader, writer):
 				client = response[3]
 				data = response[1:]
 
-				print("pips[client]:", pips[client])
+				newValue = False
+
+				try:
+					existingTimestamp = pips[client][4]
+					if(existingTimestamp != split[3]):
+						newValue = True
+						pips[client] = data
+					else:
+						pass
+				except KeyError:
+					pips[client] = data
+					newValue = True
+
 				print("response:", response)
 
-				flood = 'AT {} {} {} {} {}'.format(response[1], response[2], response[3], response[4], response[5])
-				#print("flood:", flood)
-				await flooding_algorithm(flood)
+				if(newValue == True):
+					flood = 'AT {} {} {} {} {}'.format(response[1], response[2], response[3], response[4], response[5])
+					await flooding_algorithm(flood)
 
 
 			elif(split[0] == 'WHATSAT'):
