@@ -16,15 +16,25 @@ async def handle_client(reader, writer):
 		else:
 			decoded = data.decode()
 			split = decoded.split()
-			#print(split)
+			#print("decoded:", decoded)
+			print("split:", split)
 
-			if(len(split) != 4):
-				err = "? " + decoded
-				print(err)
-				writer.write(err.encode())
-				return
 
-			if(split[0] == 'IAMAT'):
+			if(split[0] == "AT"):
+				print("AT received")
+				try:
+					storedTimestamp = pips[split[3]][4]
+					if(storedTimestamp != split[5]): #if the current timestamp inside of pips[] does not match the incoming timestamp for the client ID
+						pips[split[3]] = split[1:]
+						await flooding_algorithm(split[1:])
+					else:
+						pass
+				except KeyError:
+					pips[split[3]] = split[1:]
+					await flooding_algorithm(split[1:])
+					pass
+
+			elif(split[0] == 'IAMAT'):
 				current = time.time()
 				diff = current - float(split[3])
 
@@ -34,17 +44,19 @@ async def handle_client(reader, writer):
 				response.insert(0, sys.argv[1])
 				response.insert(0, 'AT')
 
-				#print("response:", response)
-
 				writer.write(str(response).encode())
 
 				client = response[3]
 				data = response[1:]
-				pips[client] = data 
+				pips[client] = data
 
-				#print("pips[client]:", pips[client])
-				await flooding_algorithm(data)
-				
+				print("pips[client]:", pips[client])
+				print("response:", response)
+
+				flood = 'AT {} {} {} {} {}'.format(response[1], response[2], response[3], response[4], response[5])
+				#print("flood:", flood)
+				await flooding_algorithm(flood)
+
 
 			elif(split[0] == 'WHATSAT'):
 				client = split[1]
@@ -62,7 +74,12 @@ async def handle_client(reader, writer):
 
 				except KeyError:
 					writer.write(b'no data')
-				
+			
+			else:
+				err = "? " + decoded
+				print(err)
+				writer.write(err.encode())
+				return
 
 			
 			await writer.drain()
@@ -72,7 +89,7 @@ async def flooding_algorithm(data):
 		try:
 			jaquezReader, jaquezWriter = await asyncio.open_connection(port=11536)
 			print(f'Send: {data!r} to Jaquez')
-			jaquezWriter.write(repr(data).encode())
+			jaquezWriter.write(str(data).encode())
 		except IOError as e:
 			print("unable to connect to Jaquez")
 
