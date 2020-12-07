@@ -168,7 +168,7 @@ async def flooding_algorithm(data):
 		try:
 			campbellReader, campbellWriter = await asyncio.open_connection(port=11539)
 			print(f'Send: {data!r} to Campbell')
-			singletonWriter.write(str(data).encode())
+			campbellWriter.write(str(data).encode())
 		except IOError as e:
 			print("unable to connect to Campbell")
 
