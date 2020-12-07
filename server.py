@@ -2,6 +2,7 @@
 
 import sys
 import asyncio
+import time
 
 pips = {}
 
@@ -19,37 +20,61 @@ async def handle_client(reader, writer):
 
 			if(len(split) != 4):
 				err = "? " + decoded
+				print(err)
 				writer.write(err.encode())
 				return
 
 			if(split[0] == 'IAMAT'):
-				coordinates = split[2]
-				time = split[3]
-				pips[split[1]] = (coordinates, time)
+				current = time.time()
+				diff = current - float(split[3])
 
-				writer.write(b'message received')
-				#<Implement flooding algorithm to other servers>
-				print(split[1], ":", pips[split[1]])
+				
+				response = split[1:]
+				response.insert(0, diff)
+				response.insert(0, sys.argv[1])
+				response.insert(0, 'AT')
+
+				#print("response:", response)
+
+				writer.write(str(response).encode())
+
+				client = response[3]
+				data = response[1:]
+				pips[client] = data 
+
+				#print("pips[client]:", pips[client])
+				await flooding_algorithm(data)
+				
 
 			elif(split[0] == 'WHATSAT'):
 				client = split[1]
 				radius = split[2]
 				items = split[3]
-				if(int(radius) > 50 or int(items) > 20):
+				if(int(radius) > 50 or int(radius) < 0 or int(items) > 20 or int(items) < 0):
 					err = "? " + decoded
 					writer.write(err.encode())
 					return
 				try:
 					lookup = pips[split[1]]
+					
+					#<relace with an API call to Google Places>
 					writer.write(str(lookup).encode())
+
 				except KeyError:
 					writer.write(b'no data')
 				
-				#<API call to Google Places>
 
 			
 			await writer.drain()
 
+async def flooding_algorithm(data):
+	if(sys.argv[1] == 'Hill'):
+		try:
+			jaquezReader, jaquezWriter = await asyncio.open_connection(port=11536)
+			print(f'Send: {data!r} to Jaquez')
+			jaquezWriter.write(repr(data).encode())
+		except IOError as e:
+			print("unable to connect to Jaquez")
 
 async def main():
 	print('Number of arguments:', len(sys.argv), 'arguments.')
@@ -62,6 +87,7 @@ async def main():
 		try:
 			jaquezReader, jaquezWriter = await asyncio.open_connection(port=11536)
 			print("connected to Jaquez")
+
 		except IOError as e:
 			print("unable to connect to Jaquez")
 		
@@ -150,10 +176,11 @@ async def main():
 
 	addr = server.sockets[0].getsockname()
 	print(f'Serving on {addr}')
-
 	
 	async with server:
 		await server.serve_forever()
+
+
 
 if __name__ == "__main__":
     asyncio.run(main())
