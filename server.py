@@ -59,11 +59,16 @@ async def handle_client(reader, writer):
 				try:
 					existingTimestamp = pips[client][4]
 					if(existingTimestamp != split[3]):
+						print("pips[", client, "] insert data:", data)
+						print("key:", client)
 						newValue = True
 						pips[client] = data
 					else:
+						print("no data inserted")
 						pass
 				except KeyError:
+					print("pips[", client, "] insert data:", data)
+					print("key:", client)
 					pips[client] = data
 					newValue = True
 
@@ -83,13 +88,16 @@ async def handle_client(reader, writer):
 					err = "? " + decoded
 					writer.write(err.encode())
 					return
+
 				try:
+					print("split[1]:", split[1])
 					lookup = pips[split[1]]
 					
-					#<relace with an API call to Google Places>
 					writer.write(str(lookup).encode())
+					placesQuery = await findPlaces("34.068930", "-118.445127", radius * 1000, items)
 
 				except KeyError:
+					print("cannot find data for client:", split[1])
 					writer.write(b'no data')
 			
 			else:
@@ -98,7 +106,7 @@ async def handle_client(reader, writer):
 				writer.write(err.encode())
 				return
 
-			
+			print("dictionary size:", len(pips))
 			await writer.drain()
 
 async def flooding_algorithm(data):
@@ -191,11 +199,9 @@ async def flooding_algorithm(data):
 		except IOError as e:
 			print("unable to connect to Singleton")
 
-async def findPlaces(loc=("35.701474","51.405288"),radius=4000, pagetoken = None):
-	lat, lng = loc
-	type = "restaurant"
-	url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={radius}&type={type}&key={APIKEY}{pagetoken}".format(lat = lat, lng = lng, radius = radius, type = type,APIKEY = APIKEY, pagetoken = "&pagetoken="+pagetoken if pagetoken else "")
-	print(url)
+async def findPlaces(lat, lng, radius=50000, maxItems = 20):
+	url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={radius}&key={APIKEY}".format(lat, lng, radius, APIKEY)
+	print("findPlaces URL", url)
 	async with aiohttp.ClientSession() as session:
 		async with session.get(url) as response:
 			print("Status:", response.status)
@@ -210,8 +216,6 @@ async def findPlaces(loc=("35.701474","51.405288"),radius=4000, pagetoken = None
 async def main():
 	print('Number of arguments:', len(sys.argv), 'arguments.')
 	print('Argument List:', str(sys.argv))
-
-	await findPlaces()
 
 	if(sys.argv[1] == 'Hill'):
 		server = await asyncio.start_server(handle_client, port=11535)
