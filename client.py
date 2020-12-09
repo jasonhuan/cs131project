@@ -31,8 +31,9 @@ async def main():
 	print(f'Send: {message!r}')
 	writer.write(message.encode())
 
-	data = await reader.read(200)
-	print(f'Received: {data.decode()!r}')
+	data = await reader.read(20000)
+	decoded = data.decode()
+	print('Received:', decoded)
 
 	print('Close the connection')
 	writer.close()

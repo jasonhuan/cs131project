@@ -5,6 +5,7 @@ import asyncio
 import time
 import aiohttp
 import json
+import re
 
 pips = {}
 APIKEY = "AIzaSyAULO58fqkF4UBJCVq_bJylG1zlrdErvzg"
@@ -87,12 +88,14 @@ async def handle_client(reader, writer):
 
 				try:
 					lookup = pips[client]
+					response = 'AT {} {} {} {} {}'.format(lookup[0], lookup[1], lookup[2], lookup[3], lookup[4])
 					
-					writer.write(str(lookup).encode())
-					try:
-						placesQuery = await findPlaces("34.068930", "-118.445127", int(radius), items)
-					except:
-						print("error occured with findPlaces()")
+					storedCoordinates = lookup[3]
+					placesQuery = await findPlaces(storedCoordinates, int(radius), items)
+
+					finalResponse = response + '\n' + str(placesQuery) +'\n' + '\n'
+
+					writer.write(finalResponse.encode())
 
 				except KeyError:
 					print("cannot find data for client:", split[1])
@@ -106,19 +109,33 @@ async def handle_client(reader, writer):
 
 			await writer.drain()
 
-async def findPlaces(lat, lng, radius, maxItems):
+async def findPlaces(coordinates, radius, maxItems):
+	separate = re.split('[+-]', coordinates[1:])
+
+	lat = float(separate[0])
+	lng = float(separate[1])
+
+	lat_sign = (1 if coordinates[0] == '+' else -1)
+	lng_sign = (1 if ('+' in coordinates[1:]) else -1)
+
+	lat, lng = lat * lat_sign, lng * lng_sign
+
 	url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={radius}&key={APIKEY}".format(lat = lat, lng = lng, radius = radius * 1000, APIKEY = APIKEY)
 	print("findPlaces URL", url)
 	async with aiohttp.ClientSession() as session:
 		async with session.get(url) as response:
-			print("Status:", response.status)
-			print("Content-type:", response.headers['content-type'])
+			#print("Status:", response.status)
+			#print("Content-type:", response.headers['content-type'])
 
 			html = await response.text()
-			print("Body:", html)
+			#print("Body:", html)
 
-
-	return response
+			body_obj = json.loads(html)
+			if len(body_obj["results"]) <= float(maxItems):
+				return html
+			else:
+				body_obj["results"] = body_obj["results"][:int(maxItems)]
+				return json.dumps(body_obj, sort_keys=True, indent=4)
 
 async def flooding_algorithm(data):
 	if(sys.argv[1] == 'Hill'):
