@@ -54,9 +54,35 @@ async def handle_client(reader, writer):
 					writer.write(err.encode())
 					return
 
+
+				separate = re.split('[-+]', split[2][1:])
+				if len(separate) != 2:
+					logging.info("invalid coordinates")
+					return
+
+				if split[2][0] == '+':
+					latitude = float(separate[0])
+				elif split[2][0] == '-':
+					latitude = -1 * float(separate[0])
+				else:
+					logging.info("invalid first character in coordinates")
+					return
+
+				if '-' in split[2][1:]:
+					longitude = -1 * float(separate[1])
+				else:
+					longitude = float(separate[1])
+
+				if not (-90 < latitude < 90 and -180 < longitude < 180):
+					logging.info("latitude or longitude values out of bounds")
+					return
+
+
 				current = time.time()
 				diff = current - float(split[3])
 
+				if(diff > 0):
+					diff = float('+' + str(diff))
 				
 				response = split[1:]
 				response.insert(0, diff)
