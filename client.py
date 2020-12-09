@@ -28,14 +28,14 @@ async def main():
 			message += ' '
 		message += sys.argv[x]
 
-	#print(f'Send: {message!r}')
+	print(f'Send: {message!r}')
 	writer.write(message.encode())
 
 	data = await reader.read(20000)
 	decoded = data.decode()
 	print(decoded)
 
-	#print('Close the connection')
+	print('Close the connection')
 	writer.close()
 
 	return

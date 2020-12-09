@@ -1,0 +1,8 @@
+INFO: server Campbell started
+INFO: connected to Smith
+INFO: connected to Singleton
+INFO: Serving on ('::', 11539, 0, 0)
+INFO: received: ['AT', 'Hill', '-2312532833.501422', 'iris.cs.ucla.edu', '+34.068930-118.445127', '3920023131']
+INFO: Send: AT Hill -2312532833.501422 iris.cs.ucla.edu +34.068930-118.445127 3920023131 to Smith
+INFO: received: ['AT', 'Hill', '-2312532833.501422', 'iris.cs.ucla.edu', '+34.068930-118.445127', '3920023131']
+INFO: Send: AT Hill -2312532833.501422 iris.cs.ucla.edu +34.068930-118.445127 3920023131 to Singleton

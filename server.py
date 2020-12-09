@@ -21,10 +21,19 @@ async def handle_client(reader, writer):
 		else:
 			decoded = data.decode()
 			split = decoded.split()
-			print("received:", split)
+			logging.info("received: %s", split)
 
-
+			if(len(split) == 0):
+				err = "?"
+				writer.write(err.encode())
+				return
+				
 			if(split[0] == "AT"):
+				if(len(split) != 6):
+					err = "? " + decoded
+					writer.write(err.encode())
+					return
+
 				try:
 					storedTimestamp = pips[split[3]][4]
 					if(storedTimestamp != split[5]): #if the current timestamp inside of pips[] does not match the incoming timestamp for the client ID
@@ -40,6 +49,11 @@ async def handle_client(reader, writer):
 					await flooding_algorithm(flood)
 
 			elif(split[0] == 'IAMAT'):
+				if(len(split) != 4):
+					err = "? " + decoded
+					writer.write(err.encode())
+					return
+
 				current = time.time()
 				diff = current - float(split[3])
 
@@ -62,13 +76,13 @@ async def handle_client(reader, writer):
 						newValue = True
 						pips[client] = data
 					else:
-						print("no data inserted")
+						logging.info("no data inserted")
 						pass
 				except KeyError:
 					pips[client] = data
 					newValue = True
 
-				print("response:", response)
+				logging.info("response: %s", response)
 
 				if(newValue == True):
 					#		AT Hill timeDiff clientID coords timestamp
@@ -77,6 +91,11 @@ async def handle_client(reader, writer):
 
 
 			elif(split[0] == 'WHATSAT'):
+				if(len(split) != 4):
+					err = "? " + decoded
+					writer.write(err.encode())
+					return
+
 				client = split[1]
 				radius = split[2]
 				items = split[3]
@@ -105,12 +124,12 @@ async def handle_client(reader, writer):
 					writer.write(finalResponse.encode())
 
 				except KeyError:
-					print("cannot find data for client:", split[1])
+					logging.info("cannot find data for client: %s", split[1])
 					writer.write(b'no data')
 			
 			else:
 				err = "? " + decoded
-				#print(err)
+				logging.info(err)
 				writer.write(err.encode())
 				return
 
@@ -128,7 +147,7 @@ async def findPlaces(coordinates, radius, maxItems):
 	lat, lng = lat * lat_sign, lng * lng_sign
 
 	url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={radius}&key={APIKEY}".format(lat = lat, lng = lng, radius = radius * 1000, APIKEY = APIKEY)
-	print("findPlaces URL", url)
+	logging.info("findPlaces URL: %s", url)
 	async with aiohttp.ClientSession() as session:
 		async with session.get(url) as response:
 			#print("Status:", response.status)
@@ -148,102 +167,102 @@ async def flooding_algorithm(data):
 	if(sys.argv[1] == 'Hill'):
 		try:
 			jaquezReader, jaquezWriter = await asyncio.open_connection(port=11536)
-			#print(f'Send: {data!r} to Jaquez')
+			logging.info('Send: %s to Jaquez', data)
 			jaquezWriter.write(str(data).encode())
 		except IOError as e:
-			#print("unable to connect to Jaquez")
+			logging.info("unable to connect to Jaquez")
 			pass
 
 		try:
 			smithReader, smithWriter = await asyncio.open_connection(port=11537)
-			#print(f'Send: {data!r} to Smith')
+			logging.info('Send: %s to Smith', data)
 			smithWriter.write(str(data).encode())
 		except IOError as e:
-			#print("unable to connect to Smith")
+			logging.info("unable to connect to Smith")
 			pass
 
 	if(sys.argv[1] == 'Jaquez'):
 		try:
 			hillReader, hillWriter = await asyncio.open_connection(port=11535)
-			#print(f'Send: {data!r} to Hill')
+			logging.info('Send: %s to Hill', data)
 			hillWriter.write(str(data).encode())
 		except IOError as e:
-			#print("unable to connect to Hill")
+			logging.info("unable to connect to Hill")
 			pass
 
 		try:
 			singletonReader, singletonWriter = await asyncio.open_connection(port=11538)
-			#print(f'Send: {data!r} to Singleton')
+			logging.info('Send: %s to Singleton', data)
 			singletonWriter.write(str(data).encode())
 		except IOError as e:
-			#print("unable to connect to Singleton")
+			logging.info("unable to connect to Singleton")
 			pass
 
 	if(sys.argv[1] == 'Smith'):
 		try:
 			hillReader, hillWriter = await asyncio.open_connection(port=11535)
-			#print(f'Send: {data!r} to Hill')
+			logging.info('Send: %s to Hill', data)
 			hillWriter.write(str(data).encode())
 		except IOError as e:
-			#print("unable to connect to Hill")
+			logging.info("unable to connect to Hill")
 			pass
 
 		try:
 			singletonReader, singletonWriter = await asyncio.open_connection(port=11538)
-			#print(f'Send: {data!r} to Singleton')
+			logging.info('Send: %s to Singleton', data)
 			singletonWriter.write(str(data).encode())
 		except IOError as e:
-			#print("unable to connect to Singleton")
+			logging.info("unable to connect to Singleton")
 			pass
 
 		try:
 			campbellReader, campbellWriter = await asyncio.open_connection(port=11539)
-			#print(f'Send: {data!r} to Campbell')
+			logging.info('Send: %s to Campbell', data)
 			campbellWriter.write(str(data).encode())
 		except IOError as e:
-			#print("unable to connect to Campbell")
+			logging.info("unable to connect to Campbell")
 			pass
 
 	if(sys.argv[1] == 'Singleton'):
 		try:
 			jaquezReader, jaquezWriter = await asyncio.open_connection(port=11536)
-			#print(f'Send: {data!r} to Jaquez')
+			logging.info('Send: %s to Jaquez', data)
 			jaquezWriter.write(str(data).encode())
 		except IOError as e:
-			#print("unable to connect to Jaquez")
+			logging.info("unable to connect to Jaquez")
 			pass
 
 		try:
 			smithReader, smithWriter = await asyncio.open_connection(port=11537)
-			#print(f'Send: {data!r} to Smith')
+			logging.info('Send: %s to Smith', data)
 			smithWriter.write(str(data).encode())
 		except IOError as e:
-			#print("unable to connect to Smith")
+			logging.info("unable to connect to Smith")
 			pass
 
 		try:
 			campbellReader, campbellWriter = await asyncio.open_connection(port=11539)
-			#print(f'Send: {data!r} to Campbell')
+			logging.info('Send: %s to Campbell', data)
 			campbellWriter.write(str(data).encode())
 		except IOError as e:
-			#print("unable to connect to Campbell")
+			logging.info("unable to connect to Campbell")
 			pass
 
 	if(sys.argv[1] == 'Campbell'):
 		try:
 			smithReader, smithWriter = await asyncio.open_connection(port=11537)
-			#print(f'Send: {data!r} to Smith')
+			logging.info('Send: %s to Smith', data)
 			smithWriter.write(str(data).encode())
 		except IOError as e:
-			#print("unable to connect to Smith")
+			logging.info("unable to connect to Smith")
 			pass
 
 		try:
 			singletonReader, singletonWriter = await asyncio.open_connection(port=11538)
-			#print(f'Send: {data!r} to Singleton')
+			logging.info('Send: %s to Singleton', data)
 			singletonWriter.write(str(data).encode())
 		except IOError as e:
-			#print("unable to connect to Singleton")
+			logging.info("unable to connect to Singleton")
 			pass
 
 async def main():
@@ -255,102 +274,102 @@ async def main():
 
 	if(sys.argv[1] == 'Hill'):
 		server = await asyncio.start_server(handle_client, port=11535)
-		print("server Hill started")
+		logging.info("server Hill started")
 
 		try:
 			jaquezReader, jaquezWriter = await asyncio.open_connection(port=11536)
-			print("connected to Jaquez")
+			logging.info("connected to Jaquez")
 
 		except IOError as e:
-			print("unable to connect to Jaquez")
+			logging.info("unable to connect to Jaquez")
 		
 		try:
 			smithReader, smithWriter = await asyncio.open_connection(port=11537)
-			print("connected to Smith")
+			logging.info("connected to Smith")
 		except IOError as e:
-			print("unable to connect to Smith")
+			logging.info("unable to connect to Smith")
 
 	elif(sys.argv[1] == 'Jaquez'):
 		server = await asyncio.start_server(handle_client, port=11536)
-		print("server Jaquez started")
+		logging.info("server Jaquez started")
 
 		try:
 			hillReader, hillWriter = await asyncio.open_connection(port=11535)
-			print("connected to Hill")
+			logging.info("connected to Hill")
 		except IOError as e:
-			print("unable to connect to Hill")
+			logging.info("unable to connect to Hill")
 
 		try:
 			singletonReader, singletonWriter = await asyncio.open_connection(port=11538)
-			print("connected to Singleton")
+			logging.info("connected to Singleton")
 		except IOError as e:
-			print("unable to connect to Singleton")
+			logging.info("unable to connect to Singleton")
 
 	elif(sys.argv[1] == 'Smith'):
 		server = await asyncio.start_server(handle_client, port=11537)
-		print("server Smith started")
+		logging.info("server Smith started")
 
 		try:
 			hillReader, hillWriter = await asyncio.open_connection(port=11535)
-			print("connected to Hill")
+			logging.info("connected to Hill")
 		except IOError as e:
-			print("unable to connect to Hill")
+			logging.info("unable to connect to Hill")
 
 		try:
 			singletonReader, singletonWriter = await asyncio.open_connection(port=11538)
-			print("connected to Singleton")
+			logging.info("connected to Singleton")
 		except IOError as e:
-			print("unable to connect to Singleton")
+			logging.info("unable to connect to Singleton")
 
 		try:
 			campbellReader, campbellWriter = await asyncio.open_connection(port=11539)
-			print("connected to Campbell")
+			logging.info("connected to Campbell")
 		except IOError as e:
-			print("unable to connect to Campbell")
+			logging.info("unable to connect to Campbell")
 
 	elif(sys.argv[1] == 'Singleton'):
 		server = await asyncio.start_server(handle_client, port=11538)
-		print("server Singleton started")
+		logging.info("server Singleton started")
 		
 		try:
 			jaquezReader, jaquezWriter = await asyncio.open_connection(port=11536)
-			print("connected to Jaquez")
+			logging.info("connected to Jaquez")
 		except IOError as e:
-			print("unable to connect to Jaquez")
+			logging.info("unable to connect to Jaquez")
 		
 		try:
 			smithReader, smithWriter = await asyncio.open_connection(port=11537)
-			print("connected to Smith")
+			logging.info("connected to Smith")
 		except IOError as e:
-			print("unable to connect to Smith")
+			logging.info("unable to connect to Smith")
 		
 		try:
 			campbellReader, campbellWriter = await asyncio.open_connection(port=11539)
-			print("connected to Campbell")
+			logging.info("connected to Campbell")
 		except IOError as e:
-			print("unable to connect to Campbell")
+			logging.info("unable to connect to Campbell")
 
 	elif(sys.argv[1] == 'Campbell'):
 		server = await asyncio.start_server(handle_client, port=11539)
-		print("server Campbell started")
+		logging.info("server Campbell started")
 
 		try:
 			smithReader, smithWriter = await asyncio.open_connection(port=11537)
-			print("connected to Smith")
+			logging.info("connected to Smith")
 		except IOError as e:
-			print("unable to connect to Smith")
+			logging.info("unable to connect to Smith")
 
 		try:
 			singletonReader, singletonWriter = await asyncio.open_connection(port=11538)
-			print("connected to Singleton")
+			logging.info("connected to Singleton")
 		except IOError as e:
-			print("unable to connect to Singleton")
+			logging.info("unable to connect to Singleton")
 	else:
-		print("invalid server name")
+		logging.info("invalid server name")
 		return;
 
 	addr = server.sockets[0].getsockname()
-	print(f'Serving on {addr}')
+	logging.info('Serving on %s', addr)
 	
 	async with server:
 		await server.serve_forever()
