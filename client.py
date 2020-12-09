@@ -5,8 +5,8 @@ import asyncio
 
 
 async def main():
-	print('Number of arguments:', len(sys.argv), 'arguments.')
-	print('Argument List:', str(sys.argv))
+	#print('Number of arguments:', len(sys.argv), 'arguments.')
+	#print('Argument List:', str(sys.argv))
 
 	if(sys.argv[1] == 'Hill'):
 		reader, writer = await asyncio.open_connection(port=11535)
@@ -28,14 +28,14 @@ async def main():
 			message += ' '
 		message += sys.argv[x]
 
-	print(f'Send: {message!r}')
+	#print(f'Send: {message!r}')
 	writer.write(message.encode())
 
 	data = await reader.read(20000)
 	decoded = data.decode()
-	print('Received:', decoded)
+	print(decoded)
 
-	print('Close the connection')
+	#print('Close the connection')
 	writer.close()
 
 	return
