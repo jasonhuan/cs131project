@@ -3,8 +3,11 @@
 import sys
 import asyncio
 import time
+import aiohttp
+import json
 
 pips = {}
+APIKEY = "AIzaSyAULO58fqkF4UBJCVq_bJylG1zlrdErvzg"
 
 async def handle_client(reader, writer):
 
@@ -67,6 +70,7 @@ async def handle_client(reader, writer):
 				print("response:", response)
 
 				if(newValue == True):
+					#		AT Hill timeDiff clientID coords timestamp
 					flood = 'AT {} {} {} {} {}'.format(response[1], response[2], response[3], response[4], response[5])
 					await flooding_algorithm(flood)
 
@@ -187,9 +191,27 @@ async def flooding_algorithm(data):
 		except IOError as e:
 			print("unable to connect to Singleton")
 
+async def findPlaces(loc=("35.701474","51.405288"),radius=4000, pagetoken = None):
+	lat, lng = loc
+	type = "restaurant"
+	url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={radius}&type={type}&key={APIKEY}{pagetoken}".format(lat = lat, lng = lng, radius = radius, type = type,APIKEY = APIKEY, pagetoken = "&pagetoken="+pagetoken if pagetoken else "")
+	print(url)
+	async with aiohttp.ClientSession() as session:
+		async with session.get(url) as response:
+			print("Status:", response.status)
+			print("Content-type:", response.headers['content-type'])
+
+			html = await response.text()
+			print("Body:", html)
+
+
+	return response
+
 async def main():
 	print('Number of arguments:', len(sys.argv), 'arguments.')
 	print('Argument List:', str(sys.argv))
+
+	await findPlaces()
 
 	if(sys.argv[1] == 'Hill'):
 		server = await asyncio.start_server(handle_client, port=11535)
