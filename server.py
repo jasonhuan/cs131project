@@ -78,6 +78,7 @@ async def handle_client(reader, writer):
 			elif(split[0] == 'WHATSAT'):
 				client = split[1]
 				radius = split[2]
+				print("radius:", radius)
 				items = split[3]
 				if(int(radius) > 50 or int(radius) < 0 or int(items) > 20 or int(items) < 0):
 					err = "? " + decoded
@@ -89,7 +90,7 @@ async def handle_client(reader, writer):
 					
 					writer.write(str(lookup).encode())
 					try:
-						placesQuery = await findPlaces("34.068930", "-118.445127", radius * 1000, items)
+						placesQuery = await findPlaces("34.068930", "-118.445127", int(radius), items)
 					except:
 						print("error occured with findPlaces()")
 
@@ -104,6 +105,20 @@ async def handle_client(reader, writer):
 				return
 
 			await writer.drain()
+
+async def findPlaces(lat, lng, radius, maxItems):
+	url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={radius}&key={APIKEY}".format(lat = lat, lng = lng, radius = radius * 1000, APIKEY = APIKEY)
+	print("findPlaces URL", url)
+	async with aiohttp.ClientSession() as session:
+		async with session.get(url) as response:
+			print("Status:", response.status)
+			print("Content-type:", response.headers['content-type'])
+
+			html = await response.text()
+			print("Body:", html)
+
+
+	return response
 
 async def flooding_algorithm(data):
 	if(sys.argv[1] == 'Hill'):
@@ -194,20 +209,6 @@ async def flooding_algorithm(data):
 			singletonWriter.write(str(data).encode())
 		except IOError as e:
 			print("unable to connect to Singleton")
-
-async def findPlaces(lat, lng, radius=50000, maxItems = 20):
-	url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={radius}&key={APIKEY}".format(lat = lat, lng = lng, radius = radius, APIKEY = APIKEY)
-	print("findPlaces URL", url)
-	async with aiohttp.ClientSession() as session:
-		async with session.get(url) as response:
-			print("Status:", response.status)
-			print("Content-type:", response.headers['content-type'])
-
-			html = await response.text()
-			print("Body:", html)
-
-
-	return response
 
 async def main():
 	print('Number of arguments:', len(sys.argv), 'arguments.')
