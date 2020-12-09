@@ -19,7 +19,6 @@ async def handle_client(reader, writer):
 		else:
 			decoded = data.decode()
 			split = decoded.split()
-			#print("decoded:", decoded)
 			print("received:", split)
 
 
@@ -59,16 +58,12 @@ async def handle_client(reader, writer):
 				try:
 					existingTimestamp = pips[client][4]
 					if(existingTimestamp != split[3]):
-						print("pips[", client, "] insert data:", data)
-						print("key:", client)
 						newValue = True
 						pips[client] = data
 					else:
 						print("no data inserted")
 						pass
 				except KeyError:
-					print("pips[", client, "] insert data:", data)
-					print("key:", client)
 					pips[client] = data
 					newValue = True
 
@@ -90,11 +85,13 @@ async def handle_client(reader, writer):
 					return
 
 				try:
-					print("split[1]:", split[1])
-					lookup = pips[split[1]]
+					lookup = pips[client]
 					
 					writer.write(str(lookup).encode())
-					placesQuery = await findPlaces("34.068930", "-118.445127", radius * 1000, items)
+					try:
+						placesQuery = await findPlaces("34.068930", "-118.445127", radius * 1000, items)
+					except:
+						print("error occured with findPlaces()")
 
 				except KeyError:
 					print("cannot find data for client:", split[1])
@@ -106,7 +103,6 @@ async def handle_client(reader, writer):
 				writer.write(err.encode())
 				return
 
-			print("dictionary size:", len(pips))
 			await writer.drain()
 
 async def flooding_algorithm(data):
@@ -200,7 +196,7 @@ async def flooding_algorithm(data):
 			print("unable to connect to Singleton")
 
 async def findPlaces(lat, lng, radius=50000, maxItems = 20):
-	url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={radius}&key={APIKEY}".format(lat, lng, radius, APIKEY)
+	url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={lat},{lng}&radius={radius}&key={APIKEY}".format(lat = lat, lng = lng, radius = radius, APIKEY = APIKEY)
 	print("findPlaces URL", url)
 	async with aiohttp.ClientSession() as session:
 		async with session.get(url) as response:
