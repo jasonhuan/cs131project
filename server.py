@@ -82,14 +82,13 @@ async def handle_client(reader, writer):
 				diff = current - float(split[3])
 
 				if(diff > 0):
-					diff = float('+' + str(diff))
+					diff = '+' + str(diff)
 				
 				response = split[1:]
 				response.insert(0, diff)
 				response.insert(0, sys.argv[1])
 				response.insert(0, 'AT')
 
-				writer.write(str(response).encode())
 
 				client = response[3]
 				data = response[1:]
@@ -103,10 +102,14 @@ async def handle_client(reader, writer):
 						pips[client] = data
 					else:
 						logging.info("no data inserted")
-						pass
+						err = "? " + decoded
+						writer.write(err.encode())
+						return
+						
 				except KeyError:
 					pips[client] = data
 					newValue = True
+					
 
 				logging.info("response: %s", response)
 
@@ -114,6 +117,8 @@ async def handle_client(reader, writer):
 					#		AT Hill timeDiff clientID coords timestamp
 					flood = 'AT {} {} {} {} {}'.format(response[1], response[2], response[3], response[4], response[5])
 					await flooding_algorithm(flood)
+
+				writer.write(str(response).encode())
 
 
 			elif(split[0] == 'WHATSAT'):
